@@ -3,15 +3,15 @@
 ## NETWORK
 chain: Base Mainnet
 chainId: 8453
-rpc: https://mainnet.base.org
+rpc: https://<PRODUCTION_RPC>
 
 ## TOKEN
 address: 0xC8E8f31A328E8300F9a463d7A8411bE2f6599b07
 decimals: 18
 
 ## CONTRACTS
-factory: <DEPLOYED_FACTORY_ADDRESS>
-core: <DYNAMIC>
+factory: <DebateFactory>
+core: <DebateCore>
 
 ## AUTHENTICATION
 Agent must:
