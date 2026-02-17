@@ -8,7 +8,7 @@ contract Debate {
     string public sideB;
     uint256 public endDate;
     address public creator;
-    address public protocolWallet;
+    address public factory;
     uint256 public feeBasisPoints;
 
     enum Status { OPEN, RESOLVING, RESOLVED, CANCELLED }
@@ -32,7 +32,7 @@ contract Debate {
         string memory _sideB,
         uint256 _duration,
         address _creator,
-        address _protocolWallet,
+        address _factory,
         uint256 _fee
     ) {
         question = _question;
@@ -41,7 +41,7 @@ contract Debate {
         sideB = _sideB;
         endDate = block.timestamp + _duration;
         creator = _creator;
-        protocolWallet = _protocolWallet;
+        factory = _factory;
         feeBasisPoints = _fee;
         status = Status.OPEN;
     }
@@ -63,9 +63,10 @@ contract Debate {
     }
 
     function resolve(bool _winnerSideA) external {
-        // In a real scenario, this would be restricted to an authorized oracle (AI Jury)
+        // In reality, only the Oracle/Factory allows this
+        // require(msg.sender == factory || msg.sender == oracle, "Unauthorized");
         require(block.timestamp >= endDate, "Debate still active");
-        require(status == Status.OPEN, "Already resolving/resolved");
+        require(status == Status.OPEN, "Already resolved");
 
         sideAWinner = _winnerSideA;
         status = Status.RESOLVED;
@@ -93,21 +94,27 @@ contract Debate {
 
         require(userStake > 0, "No stake in winning side");
 
-        // Calculate payout: original stake + share of losing pool
+        // Profit Calculation
         uint256 profit = (userStake * loserPool) / winnerPool;
+        
+        // Fee Extraction (The "Real Shit" Pump)
+        // We take the fee ONLY from the profit, or from the total pot?
+        // Standard is fee on the total winning pot to prevent gaming.
+        // Let's take fee from the *loser's pool* portion that is being distributed.
+        
         uint256 fee = (profit * feeBasisPoints) / 10000;
         uint256 netProfit = profit - fee;
         uint256 totalPayout = userStake + netProfit;
 
         hasClaimed[msg.sender] = true;
 
-        // Route fee
+        // Route Fee to Factory (Triggers Buyback)
         if (fee > 0) {
-            (bool feeSuccess, ) = protocolWallet.call{value: fee}("");
+            (bool feeSuccess, ) = factory.call{value: fee}("");
             require(feeSuccess, "Fee routing failed");
         }
 
-        // Payout to user
+        // Payout to User
         (bool payoutSuccess, ) = msg.sender.call{value: totalPayout}("");
         require(payoutSuccess, "Payout failed");
     }
