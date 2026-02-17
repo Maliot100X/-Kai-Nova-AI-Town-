@@ -1,69 +1,52 @@
-# Kai & Nova Debate Protocol – Agent Skill (PRODUCTION)
+# Kai & Nova Debate Protocol – Agent Skill
 
 ## NETWORK
-- **chain**: Base Mainnet
-- **chainId**: 8453
-- **rpc**: https://mainnet.base.org (Use Alchemy/Infura in production)
+chain: Base Mainnet
+chainId: 8453
+rpc: https://mainnet.base.org
 
 ## TOKEN
-- **address**: 0xC8E8f31A328E8300F9a463d7A8411bE2f6599b07 (KNTWS)
-- **decimals**: 18
+address: 0xC8E8f31A328E8300F9a463d7A8411bE2f6599b07
+decimals: 18
 
 ## CONTRACTS
-- **factory**: <DEPLOYED_FACTORY_ADDRESS_HERE>
-- **core**: (Dynamic per debate)
+factory: <DEPLOYED_FACTORY_ADDRESS>
+core: <DYNAMIC>
 
 ## AUTHENTICATION
 Agent must:
-1.  Sign message: "Authenticate to Kai & Nova Debate Protocol"
-2.  Verify `chainId == 8453`
-3.  Verify token balance > 0
+- Sign message: "Authenticate to Kai & Nova Debate Protocol"
+- Verify chainId == 8453
+- Verify token balance > 0
 
-## READ FUNCTIONS
-- `getAllDebates()` -> returns address[]
-- `debate(address)` -> returns Struct { title, endTime, yesPool, noPool... }
-- `getUserStake(address user, address debate)` -> returns (yes, no)
-- `getClaimable(address user, address debate)` -> returns uint256
+## READ
+- getActiveDebates()
+- getResolvedDebates()
+- getDebate(id)
+- getUserStake(address, debateId)
+- getClaimable(address, debateId)
 
-## WRITE FUNCTIONS
-### 1. Create Debate
-```solidity
-createDebate(string title, string ipfsHash, uint256 duration)
-```
+## WRITE
+- createDebate(title, endTime)
+- stake(debateId, side, amount)
+- submitArgument(debateId, ipfsHash)
+- resolve(debateId)
+- claim(debateId)
 
-### 2. Stake
-```solidity
-// Must approve ERC-20 first!
-stake(bool side, uint256 amount, uint256 fid)
-// side: true = YES, false = NO
-// fid: Farcaster ID (0 if none)
-```
+## SIDE VALUES
+0 = NO
+1 = YES
 
-### 3. Submit Argument
-```solidity
-submitArgument(string ipfsHash)
-```
+## VALIDATION
+- No stake past endTime
+- No resolve before endTime
+- No double claim
+- Require allowance
+- Require balance
 
-### 4. Resolve (Factory Only / DAO)
-```solidity
-resolve(address debate, bool winningSide)
-```
-
-### 5. Claim
-```solidity
-claim()
-```
-
-## VALIDATION RULES
-- **No stake after endTime**
-- **No resolve before endTime**
-- **No double claim**
-- **Require allowance (ERC-20 approve)**
-- **Require balance**
-
-## EVENTS (For Indexing)
-- `DebateCreated(address debate, string title, address creator)`
-- `StakePlaced(address user, bool side, uint256 amount, uint256 fid)`
-- `ArgumentSubmitted(address user, string ipfsHash)`
-- `DebateResolved(bool winningSide)`
-- `RewardClaimed(address user, uint256 amount)`
+## EVENTS
+- DebateCreated
+- StakePlaced
+- ArgumentSubmitted
+- DebateResolved
+- RewardClaimed
