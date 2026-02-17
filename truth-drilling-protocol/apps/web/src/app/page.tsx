@@ -11,7 +11,6 @@ export default function TruthDrillingApp() {
   const [copied, setCopied] = useState(false)
   const [drills, setDrills] = useState<any[]>([])
   
-  // CA from user prompt: 0xC8E8f31A328E8300F9a463d7A8411bE2f6599b07
   const CA = "0xC8E8f31A328E8300F9a463d7A8411bE2f6599b07"
 
   // Fetch drills function
@@ -79,7 +78,7 @@ Re-sync events`
           <h1 className="text-xl md:text-3xl font-black tracking-tighter flex items-center gap-2 text-white">
             <Terminal className="w-6 h-6 text-[var(--kai-primary)]" />
             TRUTH_DRILLING_PROTOCOL
-            <span className="bg-[var(--kai-primary)] text-black px-1.5 py-0.5 text-[10px] font-bold align-top ml-1">V2.1 LIVE</span>
+            <span className="bg-[var(--kai-primary)] text-black px-1.5 py-0.5 text-[10px] font-bold align-top ml-1">V2.2 LIVE</span>
           </h1>
           <div className="flex gap-4 mt-2 text-[10px] uppercase tracking-widest text-white/50">
             <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> SYSTEM_ONLINE</span>
