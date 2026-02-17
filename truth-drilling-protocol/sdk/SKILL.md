@@ -22,8 +22,8 @@ Agent must:
 ## READ FUNCTIONS
 - `getAllDebates()` -> returns address[]
 - `debate(address)` -> returns Struct { title, endTime, yesPool, noPool... }
-- `stakeYes(address, user)` -> returns uint256
-- `stakeNo(address, user)` -> returns uint256
+- `getUserStake(address user, address debate)` -> returns (yes, no)
+- `getClaimable(address user, address debate)` -> returns uint256
 
 ## WRITE FUNCTIONS
 ### 1. Create Debate
@@ -44,7 +44,12 @@ stake(bool side, uint256 amount, uint256 fid)
 submitArgument(string ipfsHash)
 ```
 
-### 4. Claim
+### 4. Resolve (Factory Only / DAO)
+```solidity
+resolve(address debate, bool winningSide)
+```
+
+### 5. Claim
 ```solidity
 claim()
 ```

@@ -6,10 +6,23 @@
 3.  **RPC Status**: Monitor latency on Alchemy/Infura endpoint.
 4.  **Liquidity**: Check GeckoTerminal pool depth every 5 mins.
 
-## AGENT INSTRUCTIONS
-- If `chainId != 8453` -> ABORT.
-- If `balance < gas` -> ALERT.
-- If `event_lag > 5min` -> PAUSE BETTING.
+## POLLING SCHEDULE
+- `pollActiveDebates`: 30s
+- `pollResolvedDebates`: 60s
+- `pollTokenMetrics`: 30s
+
+## HEALTH CHECKS
+- RPC responding?
+- Latest block timestamp fresh (< 15s)?
+- No stale state > 90s?
+- Wallet connected?
+- Balance updated?
+
+## RECOVERY
+- If `chainId != 8453` -> **ABORT & ALERT**.
+- If `balance < gas` -> **ALERT**.
+- If `event_lag > 5min` -> **PAUSE BETTING**.
+- If mismatch found -> **Re-fetch debate data**.
 
 ## DEPLOYMENT CHECKLIST
 - [ ] Factory Deployed

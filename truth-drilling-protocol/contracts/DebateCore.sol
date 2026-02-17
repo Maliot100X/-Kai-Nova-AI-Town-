@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/**
- * @title DebateCore
- * @notice Logic for individual debates in the Kai & Nova Protocol.
- * @dev Enforces strict state transitions and safety checks.
- */
-contract DebateCore {
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract DebateCore is ReentrancyGuard, Ownable {
+    using SafeERC20 for IERC20;
+
     struct DebateStruct {
         string title;
-        string ipfsHash; // Argument/Description storage
+        string ipfsHash;
         address creator;
         uint256 endTime;
         uint256 yesPool;
@@ -21,8 +23,8 @@ contract DebateCore {
 
     DebateStruct public debate;
     address public factory;
-    address public token; // The KNTWS ERC-20 Token
-    
+    IERC20 public token;
+
     mapping(address => uint256) public stakeYes;
     mapping(address => uint256) public stakeNo;
     mapping(address => bool) public hasClaimed;
@@ -32,38 +34,38 @@ contract DebateCore {
     event DebateResolved(bool winningSide);
     event RewardClaimed(address indexed user, uint256 amount);
 
-    modifier onlyFactory() {
-        require(msg.sender == factory, "Only Factory");
-        _;
-    }
-
     constructor(
         string memory _title,
         string memory _ipfsHash,
         uint256 _duration,
         address _creator,
         address _token
-    ) {
+    ) Ownable() { // Initialize Ownable
         factory = msg.sender;
-        token = _token;
+        token = IERC20(_token);
         
         debate.title = _title;
         debate.ipfsHash = _ipfsHash;
         debate.creator = _creator;
         debate.endTime = block.timestamp + _duration;
         debate.resolved = false;
+        
+        // Transfer ownership to creator immediately or keep factory as owner?
+        // Standard practice: Factory keeps control or assigns governance.
+        // For simplicity: Factory owner stays owner.
     }
 
-    function stake(bool _side, uint256 _amount, uint256 _fid) external {
+    modifier onlyFactory() {
+        require(msg.sender == factory, "Only Factory");
+        _;
+    }
+
+    function stake(bool _side, uint256 _amount, uint256 _fid) external nonReentrant {
         require(block.timestamp < debate.endTime, "Debate ended: Staking closed");
         require(_amount > 0, "Amount must be > 0");
         
-        // Transfer tokens from user to this contract
-        // Requires approval on the ERC-20 token first
-        (bool success, bytes memory data) = token.call(
-            abi.encodeWithSignature("transferFrom(address,address,uint256)", msg.sender, address(this), _amount)
-        );
-        require(success && (data.length == 0 || abi.decode(data, (bool))), "Transfer failed: Check Allowance/Balance");
+        // Checks-Effects-Interactions Pattern
+        token.safeTransferFrom(msg.sender, address(this), _amount);
 
         if (_side) {
             stakeYes[msg.sender] += _amount;
@@ -77,11 +79,7 @@ contract DebateCore {
         emit StakePlaced(msg.sender, _side, _amount, _fid);
     }
 
-    function resolve(bool _winningSide) external {
-        // In this version, resolution is permissionless after 2x duration (fallback)
-        // or centralized via Oracle/Factory before then. 
-        // For simplicity/strictness requested: Factory controls resolution via Oracle.
-        require(msg.sender == factory, "Only Factory can resolve"); 
+    function resolve(bool _winningSide) external onlyFactory {
         require(block.timestamp >= debate.endTime, "Cannot resolve before endTime");
         require(!debate.resolved, "Already resolved");
 
@@ -91,7 +89,7 @@ contract DebateCore {
         emit DebateResolved(_winningSide);
     }
 
-    function claim() external {
+    function claim() external nonReentrant {
         require(debate.resolved, "Not resolved yet");
         require(!hasClaimed[msg.sender], "Already claimed");
 
@@ -118,16 +116,11 @@ contract DebateCore {
 
         hasClaimed[msg.sender] = true;
 
-        // Transfer Payout
-        (bool success, bytes memory data) = token.call(
-            abi.encodeWithSignature("transfer(address,uint256)", msg.sender, totalPayout)
-        );
-        require(success && (data.length == 0 || abi.decode(data, (bool))), "Payout transfer failed");
+        token.safeTransfer(msg.sender, totalPayout);
 
         emit RewardClaimed(msg.sender, totalPayout);
     }
     
-    // Allow external agents/users to submit arguments on-chain for indexing
     function submitArgument(string memory _ipfsHash) external {
         require(block.timestamp < debate.endTime, "Debate ended");
         emit ArgumentSubmitted(msg.sender, _ipfsHash);
