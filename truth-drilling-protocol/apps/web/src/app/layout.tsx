@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     "base:app_id": "6993fc73e0d5d2cf831b5eb7",
     "fc:miniapp": JSON.stringify({
       version: "1",
-      imageUrl: "https://kai-nova-sisters-protocol-kntws.vercel.app/og-image.png",
+      imageUrl: "https://kai-nova-sisters-protocol-kntws.vercel.app/api/og",
       button: {
         title: "Open App",
         action: {
